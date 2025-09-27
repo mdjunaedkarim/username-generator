@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Username Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #111;
+            margin-bottom: 25px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            background-color: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .checkbox-group label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        
+        textarea,
+        input[type="number"] {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 10px;
+            color: #333;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        textarea {
+           resize: vertical;
+        }
+
+        textarea:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        #generateBtn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #generateBtn:hover {
+            background-color: #0056b3;
+        }
+
+        #copyAllBtn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #copyAllBtn:hover {
+            background-color: #1e7e34;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #results {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            min-height: 100px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-content: flex-start;
+        }
+
+        .username-item {
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .username-item:hover {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Advanced Username Generator</h1>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="names">Enter Names (optional)</label>
+                <textarea id="names" rows="4" placeholder="e.g., Arman Majumder Ilias Munshi"></textarea>
+            </div>
+            
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeLastName" checked>
+                <label for="includeLastName">Include Last Name</label>
+            </div>
+
+            <div class="input-group">
+                <label for="length">Username Length (optional)</label>
+                <input type="number" id="length" min="1" placeholder="e.g., 12">
+            </div>
+
+            <div class="input-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" value="10" min="1">
+            </div>
+        </div>
+
+        <div class="actions">
+            <button id="generateBtn">Generate</button>
+            <button id="copyAllBtn">Copy All</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const namesInput = document.getElementById('names');
+        const includeLastNameCheckbox = document.getElementById('includeLastName');
+        const lengthInput = document.getElementById('length');
+        const quantityInput = document.getElementById('quantity');
+        const generateBtn = document.getElementById('generateBtn');
+        const copyAllBtn = document.getElementById('copyAllBtn');
+        const resultsContainer = document.getElementById('results');
+
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        const numChars = '0123456789';
+
+        function createSingleUsername(baseName, targetLength) {
+            // If no length is specified, just append random numbers
+            if (!targetLength) {
+                let padding = '';
+                padding += numChars.charAt(Math.floor(Math.random() * numChars.length));
+                padding += numChars.charAt(Math.floor(Math.random() * numChars.length));
+                return baseName + padding;
+            }
+
+            // If length is specified, enforce it
+            if (baseName.length > targetLength) {
+                return baseName.substring(0, targetLength);
+            }
+
+            let remainingLength = targetLength - baseName.length;
+            let padding = '';
+            for (let i = 0; i < remainingLength; i++) {
+                padding += numChars.charAt(Math.floor(Math.random() * numChars.length));
+            }
+            return baseName + padding;
+        }
+
+        function generateUsernames() {
+            resultsContainer.innerHTML = '';
+            
+            const isLastNameIncluded = includeLastNameCheckbox.checked;
+            const namesString = namesInput.value.trim();
+            const targetLength = lengthInput.value ? parseInt(lengthInput.value, 10) : null;
+            const requestedQuantity = parseInt(quantityInput.value, 10) || 1;
+            const words = namesString ? namesString.split(/\s+/) : [];
+
+            // Case 1: No names provided, generate fully random usernames
+            if (words.length === 0) {
+                const len = targetLength || 12; // Use default length if not specified
+                for (let i = 0; i < requestedQuantity; i++) {
+                    let randomUser = '';
+                    for (let j = 0; j < len; j++) {
+                        randomUser += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    displayUsername(randomUser); // Already lowercase from `chars`
+                }
+                return;
+            }
+
+            // Case 2: Names are provided
+            const namePairs = [];
+            for (let i = 0; i < words.length; i += 2) {
+                namePairs.push({
+                    firstName: words[i],
+                    lastName: words[i + 1] || ''
+                });
+            }
+
+            let usernamesPerName = 1;
+            if (requestedQuantity > namePairs.length) {
+                usernamesPerName = Math.ceil(requestedQuantity / namePairs.length);
+            }
+            
+            namePairs.forEach(pair => {
+                for (let i = 0; i < usernamesPerName; i++) {
+                    let baseName = pair.firstName;
+                    if (isLastNameIncluded && pair.lastName) {
+                        baseName += pair.lastName;
+                    }
+                    
+                    const finalUsername = createSingleUsername(baseName, targetLength);
+                    displayUsername(finalUsername.toLowerCase());
+                }
+            });
+        }
+        
+        function displayUsername(username) {
+            const userElement = document.createElement('div');
+            userElement.classList.add('username-item');
+            userElement.textContent = username;
+            resultsContainer.appendChild(userElement);
+        }
+
+        function copyAllUsernames() {
+            const usernameElements = resultsContainer.querySelectorAll('.username-item');
+            if (usernameElements.length === 0) return;
+            const usernames = Array.from(usernameElements).map(el => el.textContent);
+            const textToCopy = usernames.join('\n');
+            navigator.clipboard.writeText(textToCopy).catch(err => console.error('Failed to copy usernames: ', err));
+        }
+        
+        resultsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('username-item')) {
+                const textToCopy = event.target.textContent;
+                navigator.clipboard.writeText(textToCopy).catch(err => console.error('Failed to copy username: ', err));
+            }
+        });
+
+        generateBtn.addEventListener('click', generateUsernames);
+        copyAllBtn.addEventListener('click', copyAllUsernames);
+
+        // Generate some default usernames on load
+        generateUsernames();
+
+    </script>
+
+</body>
+</html>
